@@ -18,13 +18,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
-import foodsStoreRoute from './routes/foodstore';
-import calDeliveryRoute from './routes/cal_delivery';
 import lineLiffRoute from './routes/line_liff'
 
-import loginRoute from './routes/login';
-import requestRoute from './routes/request';
-import userRoute from './routes/user';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -111,14 +106,6 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
     });
 }
 app.use('/api/line_liff', lineLiffRoute);
-app.use('/api/foods_store',  foodsStoreRoute);
-app.use('/api/cal_delivery', calDeliveryRoute);
-
-
-// app.use('/login', loginRoute);
-// app.use('/api', checkAuth, requestRoute);
-// app.use('/user', userRoute);
-// app.use('/request', checkAuth, requestRoute);
 app.use('/', indexRoute);
 
 //error handlers
