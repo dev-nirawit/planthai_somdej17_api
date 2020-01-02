@@ -73,17 +73,6 @@ router.post('/save_customer', async (req: Request, res: Response, next: NextFunc
       data.customer_tel = customerTel;
       data.customer_date_create = moment().format('YYYY-MM-DD HH:mm:ss');
       var rs: any = await lineliffModel.saveCustomer(req.db, data);
-        // var customerId = rs[0].customer_id;
-
-        // var payload = {
-        //   id: customerId
-        // }
-
-        // if (deviceToken) {
-        //   await userModel.updateDeviceToken(req.db, cid, deviceToken);
-        // }
-
-        // var token = await jwt.sign(payload);
         res.send({ ok: true, message: rs ,code: HttpStatus.OK});
 
     } catch (error) {
@@ -105,17 +94,6 @@ router.get('/branch_province', async (req: Request, res: Response) => {
     res.send({ ok: false, message: error.message });
   }
 });
-
-// ex for sql model
-// router.get('/branch_province_sql', async (req: Request, res: Response) => {
-//   try {
-//     var rs: any = await lineliffModel.getBranchProvinceSql(req.db);
-//     res.send({ ok: true, rows: rs });
-//   } catch (error) {
-//     console.log(error);
-//     res.send({ ok: false, message: error.message });
-//   }
-// });
 
 // get STEP 2
 router.get('/get_food_store/:provinceId', async (req: Request, res: Response) => {
