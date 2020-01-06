@@ -57,21 +57,49 @@ router.post('/checkliff_first', async (req: Request, res: Response, next: NextFu
 
 });
 
+// ข้อมูลพื้นฐานลูกค้า
+router.get('/profile/:userId', async (req: Request, res: Response, next: NextFunction) => {
+  var userId = req.params.userId;
+
+  if (userId) {
+
+    try {
+      var rs: any = await lineliffModel.getCustomerProfile(req.db, userId);
+      if (rs.length) {
+        res.send({ ok: true, rows: rs ,code: HttpStatus.OK});
+      } else {
+        res.send({ ok: false, message: 'ไม่พบข้อมูลของท่าน!',code: HttpStatus.UNAUTHORIZED })
+      }
+    } catch (error) {
+      res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })
+    }
+  } else {
+    res.send({ ok: false, message: 'ข้อมูลไม่ครบ:'+userId,code: HttpStatus.UNAUTHORIZED })
+  }
+
+});
+
 router.post('/save_customer', async (req: Request, res: Response, next: NextFunction) => {
-  var customerName = req.body.customerName;
-  var customerImg = req.body.customerImg;
-  var customerTel = req.body.customerTel;
-  var customerLineUserId = req.body.customerLineUserId;
-
-
+  let customerName = req.body.customerName;
+  let customerImg = req.body.customerImg;
+  let customerTel = req.body.customerTel;
+  let customerLineUserId = req.body.customerLineUserId;
+  let customerAge = req.body.customerAge;
+  let customerWeight = req.body.customerWeight;
+  let customerCongenitaldisease = req.body.customerCongenitaldisease;
   if (customerLineUserId) {
     try {
-      var data: any = {};
-      data.customer_line_userId = customerLineUserId;
-      data.customer_name = customerName;
-      data.customer_img = customerImg;
-      data.customer_tel = customerTel;
-      data.customer_date_create = moment().format('YYYY-MM-DD HH:mm:ss');
+      var data = {
+        customer_line_userId : customerLineUserId,
+        customer_name : customerName,
+        customer_img : customerImg,
+        customer_tel : customerTel,
+        customer_date_create : moment().format('YYYY-MM-DD HH:mm:ss'),
+        customer_age : customerAge,
+        customer_weight : customerWeight,
+        customer_congenitaldisease : customerCongenitaldisease
+      };
+
       var rs: any = await lineliffModel.saveCustomer(req.db, data);
         res.send({ ok: true, message: rs ,code: HttpStatus.OK});
 
