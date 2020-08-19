@@ -18,7 +18,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
-import lineLiffRoute from './routes/line_liff'
+import lineLiffRoute from './routes/line_liff';
+import lineLiffQRoute from './routes/line_liff_q';
 
 
 // Assign router to the express.Router() instance
@@ -83,7 +84,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 let checkAuth = (req: Request, res: Response, next: NextFunction) => {
-  let token: string = null;
+  let token: any = null;
 
   if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
     token = req.headers.authorization.split(' ')[1];
@@ -105,8 +106,10 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
       });
     });
 }
-app.use('/api/line_liff', lineLiffRoute);
+
 app.use('/', indexRoute);
+app.use('/api/line_liff', lineLiffRoute);
+// app.use('/api/line_liff/q', lineLiffQRoute);
 
 //error handlers
 

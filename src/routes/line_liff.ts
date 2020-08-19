@@ -23,6 +23,17 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+router.get('/selectbooking_limit', async (req: Request, res: Response) => {
+  try {
+    var rs: any = await lineliffModel.getselectbooking_limit(req.db);
+    res.send({ ok: true, message: rs, code: HttpStatus.OK });
+  } catch (error) {
+    console.log(error);
+    res.send({ ok: false, message: error.message });
+  }
+});
+
+
 router.post('/checkliff_first', async (req: Request, res: Response, next: NextFunction) => {
   var userId = req.body.user_id;
   // var cid = req.body.cid;
@@ -35,7 +46,7 @@ router.post('/checkliff_first', async (req: Request, res: Response, next: NextFu
         var customerId = rs[0].customer_id;
 
         var payload = {
-          customerId : customerId
+          customerId: customerId
         }
 
         // if (deviceToken) {
@@ -43,16 +54,16 @@ router.post('/checkliff_first', async (req: Request, res: Response, next: NextFu
         // }
 
         // var token = await jwt.sign(payload);
-        res.send({ ok: true, message: payload ,code: HttpStatus.OK});
+        res.send({ ok: true, message: payload, code: HttpStatus.OK });
 
       } else {
-        res.send({ ok: false, message: 'ไม่พบข้อมูลของท่าน!',code: HttpStatus.UNAUTHORIZED })
+        res.send({ ok: false, message: 'ไม่พบข้อมูลของท่าน!', code: HttpStatus.UNAUTHORIZED })
       }
     } catch (error) {
       res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })
     }
   } else {
-    res.send({ ok: false, message: 'ข้อมูลไม่ครบ:'+userId,code: HttpStatus.UNAUTHORIZED })
+    res.send({ ok: false, message: 'ข้อมูลไม่ครบ:' + userId, code: HttpStatus.UNAUTHORIZED })
   }
 
 });
@@ -66,15 +77,15 @@ router.get('/profile/:userId', async (req: Request, res: Response, next: NextFun
     try {
       var rs: any = await lineliffModel.getCustomerProfile(req.db, userId);
       if (rs.length) {
-        res.send({ ok: true, rows: rs ,code: HttpStatus.OK});
+        res.send({ ok: true, rows: rs, code: HttpStatus.OK });
       } else {
-        res.send({ ok: false, message: 'ไม่พบข้อมูลของท่าน!',code: HttpStatus.UNAUTHORIZED })
+        res.send({ ok: false, message: 'ไม่พบข้อมูลของท่าน!', code: HttpStatus.UNAUTHORIZED })
       }
     } catch (error) {
       res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })
     }
   } else {
-    res.send({ ok: false, message: 'ข้อมูลไม่ครบ:'+userId,code: HttpStatus.UNAUTHORIZED })
+    res.send({ ok: false, message: 'ข้อมูลไม่ครบ:' + userId, code: HttpStatus.UNAUTHORIZED })
   }
 
 });
@@ -90,61 +101,78 @@ router.post('/save_customer', async (req: Request, res: Response, next: NextFunc
   if (customerLineUserId) {
     try {
       var data = {
-        customer_line_userId : customerLineUserId,
-        customer_name : customerName,
-        customer_img : customerImg,
-        customer_tel : customerTel,
-        customer_date_create : moment().format('YYYY-MM-DD HH:mm:ss'),
-        customer_age : customerAge,
-        customer_weight : customerWeight,
-        customer_congenitaldisease : customerCongenitaldisease
+        customer_line_userId: customerLineUserId,
+        customer_name: customerName,
+        customer_img: customerImg,
+        customer_tel: customerTel,
+        customer_date_create: moment().format('YYYY-MM-DD HH:mm:ss'),
+        customer_age: customerAge,
+        customer_weight: customerWeight,
+        customer_congenitaldisease: customerCongenitaldisease
       };
 
       var rs: any = await lineliffModel.saveCustomer(req.db, data);
-        res.send({ ok: true, message: rs ,code: HttpStatus.OK});
+      res.send({ ok: true, message: rs, code: HttpStatus.OK });
 
     } catch (error) {
       res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })
     }
   } else {
-    res.send({ ok: false, message: 'ข้อมูลไม่ครบ',code: HttpStatus.UNAUTHORIZED })
+    res.send({ ok: false, message: 'ข้อมูลไม่ครบ', code: HttpStatus.UNAUTHORIZED })
   }
 
 });
 
-// get STEP 1
-router.get('/branch_province', async (req: Request, res: Response) => {
+router.post('/save_customer_booking', async (req: Request, res: Response, next: NextFunction) => {
+  let data = req.body.data;
+  let datetime_create = moment().format('YYYY-MM-DD HH:mm:ss');
   try {
-    var rs: any = await lineliffModel.getBranchProvince(req.db);
-    res.send({ ok: true, rows: rs });
+    // rs : any = await.
+    let payload = {
+      'inorder_booking_custometype': data.bookingType,
+      'inorder_booking_fullname': data.customerName,
+      'inorder_booking_age': data.customerAge,
+      'inorder_booking_weight': data.customerWeight,
+      'inorder_booking_congenitaldisease': data.customerCongenitaldisease,
+      'inorder_booking_tel': data.customerTel,
+      'inorder_booking_selectdate': data.myHiddenInputBookingDate,
+      'inorder_booking_ref_id': data.customerAge,
+      'inorder_booking_img_other': '',
+      'inorder_booking_create_datetime': datetime_create
+    };
+    if (data.bookingType == 2) {
+      payload.inorder_booking_img_other = data.inorder_booking_img_other;
+    }
+    let rs: any = await lineliffModel.saveOrder(req.db, payload);
+    if (rs.length) {
+      console.log(rs);
+      res.send({ ok: true, status: true, payload: rs[0], code: HttpStatus.OK });
+    } else {
+      let message_error = {
+        type: 'error',
+        title: 'เนื่องจากระบบยังไม่ได้เปิดให้บันทึก',
+        text: 'กรุณาแจ้ง ผู้ดูแลระบบ เนื่องจากเกิดข้อผิดพลาด',
+        showConfirmButton: true,
+        confirmButtonText: 'รับทราบ'
+      };
+      res.send({ ok: true, status: false, message_error: message_error, code: HttpStatus.OK });
+    }
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error.message });
   }
 });
 
-// get STEP 2
-router.get('/get_food_store/:provinceId', async (req: Request, res: Response) => {
+// get 
+router.get('/getbooking_time/:selectdate', async (req: Request, res: Response) => {
+  let selectdate = req.params.selectdate;
   try {
-    let provinceId = req.params.provinceId;
-    var rs: any = await lineliffModel.getFoodStoreRequest(req.db,provinceId);
-    // res.send({ ok: true, message: `val : ${provinceId}` });
-    res.send({ ok: true, rows: rs });
+    var rs: any = await lineliffModel.getbookingTimeSql(req.db, selectdate);
+    res.send({ ok: true, rows: rs[0] });
   } catch (error) {
     console.log(error);
     res.send({ ok: false, message: error.message });
   }
 });
-// get STEP 3
-router.get('/food_list_menu/:foodStoreId', async (req: Request, res: Response) => {
-  try {
-    let foodStoreId = req.params.foodStoreId;
-    var rs: any = await lineliffModel.getFoodListMenuRequest(req.db,foodStoreId);
-    // res.send({ ok: true, message: `val : ${provinceId}` });
-    res.send({ ok: true, rows: rs });
-  } catch (error) {
-    console.log(error);
-    res.send({ ok: false, message: error.message });
-  }
-});
+
 export default router;
