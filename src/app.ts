@@ -18,9 +18,10 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { Jwt } from './models/jwt';
 
 import indexRoute from './routes/index';
+import authRoute from './routes/auth';
 import lineLiffRoute from './routes/line_liff';
-import lineLiffQRoute from './routes/line_liff_q';
-
+import managerRoute from './routes/manager';
+import webhookRoute from './routes/webhook';
 
 // Assign router to the express.Router() instance
 const app: express.Application = express();
@@ -40,7 +41,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../public')));
 
-app.use(cors());
+// Make Images "Uploads" Folder Publicly Available
+app.use('/upload', express.static('upload'));
+// app.use(cors());
+var corsOptions = {
+  origin: process.env.CORS_URL
+};
+
+app.use(cors(corsOptions));
 
 let connection: MySqlConnectionConfig = {
   host: process.env.DB_HOST,
@@ -49,7 +57,8 @@ let connection: MySqlConnectionConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   multipleStatements: true,
-  debug: true
+  debug: true,
+  dateStrings: true
 }
 
 let db = Knex({
@@ -101,14 +110,23 @@ let checkAuth = (req: Request, res: Response, next: NextFunction) => {
     }, err => {
       return res.send({
         ok: false,
-        error: HttpStatus.getStatusText(HttpStatus.UNAUTHORIZED),
+        message: HttpStatus.getStatusText(HttpStatus.UNAUTHORIZED),
         code: HttpStatus.UNAUTHORIZED
       });
     });
 }
 
 app.use('/', indexRoute);
-app.use('/api/line_liff', lineLiffRoute);
+
+app.use('/webhook', webhookRoute);
+
+app.use('/api/auth', authRoute);
+
+app.use('/api/line_liff', checkAuth, lineLiffRoute);
+
+app.use('/api/manager', checkAuth, managerRoute);
+
+
 // app.use('/api/line_liff/q', lineLiffQRoute);
 
 //error handlers

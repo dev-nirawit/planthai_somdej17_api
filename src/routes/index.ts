@@ -26,7 +26,7 @@ router.get('/gen-token', async (req: Request, res: Response) => {
       id: 1
     }
 
-    let token = jwt.signApiKey(payload);
+    let token = jwt.sign(payload);
     res.send({ ok: true, token: token, code: HttpStatus.OK });
   } catch (error) {
     res.send({ ok: false, error: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR });
