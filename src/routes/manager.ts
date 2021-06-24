@@ -21,7 +21,7 @@ const lineliffModel = new LineLiffModel();
 const managerModel = new ManagerModel();
 const router: Router = Router();
 
-const upliadFileData = { filename: '', status: false };
+const upliadFileData = { filename: '', status: false, nofile: true };
 // Multer File upload settings
 const DIR = './upload/avatar/';
 const storage = multer.diskStorage({
@@ -48,9 +48,11 @@ var upload = multer({
         if (file.mimetype == "image/png" || file.mimetype == "image/jpg" || file.mimetype == "image/jpeg") {
             cb(null, true);
             upliadFileData.status = true;
+            upliadFileData.nofile = false;
         } else {
             cb(null, false);
             upliadFileData.status = false;
+            upliadFileData.nofile = false;
             // return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
         }
     }
@@ -729,7 +731,7 @@ router.post('/checkin_q', async (req: Request, res: Response) => {
 router.get('/masseuse', async (req: Request, res: Response) => {
     try {
         const rs = await managerModel.getMasseusePerson(req.db);
-        console.log(rs);
+        // console.log(rs);
         res.send({ ok: true, rows: rs, code: HttpStatus.OK })
     } catch (error) {
         res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })
@@ -739,6 +741,7 @@ router.get('/masseuse', async (req: Request, res: Response) => {
 router.post('/masseuse', upload.single('avatar'), async (req: Request, res: Response) => {
     const fullname = req.body.fullname;
     const nickname = req.body.nickname;
+    const service_planthai_id = req.body.service_planthai_id;
     let datetime = moment().format('YYYY-MM-DD HH:mm:ss');
     try {
         const url = req.protocol + '://' + req.get('host') + '/upload/avatar/';
@@ -747,6 +750,7 @@ router.post('/masseuse', upload.single('avatar'), async (req: Request, res: Resp
             masseuse_full_name: fullname,
             masseuse_nick_name: nickname,
             masseuse_img: url + upliadFileData.filename,
+            ref_service_planthai: service_planthai_id,
             masseuse_insert_datetime: datetime,
             ref_member_fullname: req.decoded.member_fullname,
             ref_datetime: datetime
@@ -770,25 +774,41 @@ router.put('/masseuse/:id', upload.single('avatar'), async (req: Request, res: R
     const id = req.params.id;
     const fullname = req.body.fullname;
     const nickname = req.body.nickname;
+    const service_planthai_id = req.body.service_planthai_id;
     let datetime = moment().format('YYYY-MM-DD HH:mm:ss');
     try {
         const url = req.protocol + '://' + req.get('host') + '/upload/avatar/';
-
-        const data = {
-            masseuse_full_name: fullname,
-            masseuse_nick_name: nickname,
-            masseuse_img: url + upliadFileData.filename,
-            ref_member_fullname: req.decoded.member_fullname,
-            ref_datetime: datetime
-        }
-        // console.log('upliadFileData', upliadFileData);
+        console.log(upliadFileData);
         // console.log(data);
-        if (upliadFileData.status) {
-            const rs = await managerModel.saveMasseuse(req.db, data)
-            console.log(rs);
+
+        if (upliadFileData.nofile === false && upliadFileData.status === true) {
+            console.log('มีไฟล์+บันทึก save ไฟล์แล้ว');
+            const data = {
+                masseuse_full_name: fullname,
+                masseuse_nick_name: nickname,
+                masseuse_img: url + upliadFileData.filename,
+                masseuse_update_datetime: datetime,
+                ref_service_planthai: service_planthai_id,
+                ref_member_fullname: req.decoded.member_fullname,
+                ref_datetime: datetime
+            }
+            await managerModel.updateMasseuse(req.db, id, data)
+            // console.log(rs);
+            res.send({ ok: true, code: HttpStatus.OK })
+        } else if (upliadFileData.nofile === true && upliadFileData.status === false) {
+            console.log('ไม่มีไฟล์ใหม่');
+            const data = {
+                masseuse_full_name: fullname,
+                masseuse_nick_name: nickname,
+                masseuse_update_datetime: datetime,
+                ref_service_planthai: service_planthai_id,
+                ref_member_fullname: req.decoded.member_fullname,
+                ref_datetime: datetime
+            }
+            await managerModel.updateMasseuse(req.db, id, data)
             res.send({ ok: true, code: HttpStatus.OK })
         } else {
-            res.send({ ok: false, message: 'เลือกไฟล์ไม่ถูกต้อง รองรับเฉาะ [ .jpg | .jpeg |.png ]', code: HttpStatus.NO_CONTENT })
+            res.send({ ok: false, message: 'เลือกไฟล์ไม่ถูกต้อง รองรับเฉาะ [ .jpg | .jpeg |.png ]', code: HttpStatus.NO_CONTENT });
         }
     } catch (error) {
         res.send({ ok: false, message: error.message, code: HttpStatus.INTERNAL_SERVER_ERROR })

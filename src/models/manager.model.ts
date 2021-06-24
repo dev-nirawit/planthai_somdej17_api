@@ -149,4 +149,9 @@ export class ManagerModel {
         return db('masseuse')
             .insert(data)
     }
+    updateMasseuse(db: Knex, id, data) {
+        return db('masseuse')
+            .update(data)
+            .where('id', id)
+    }
 }
