@@ -1,7 +1,7 @@
 /// <reference path="../typings.d.ts" />
 
 require('dotenv').config();
-var mqtt = require('mqtt');
+// var mqtt = require('mqtt');
 
 import * as path from 'path';
 import * as logger from 'morgan';
@@ -10,7 +10,7 @@ import * as bodyParser from 'body-parser';
 import * as ejs from 'ejs';
 import * as HttpStatus from 'http-status-codes';
 import * as express from 'express';
-import * as cors from 'cors';
+var cors = require('cors');
 
 import Knex = require('knex');
 import { MySqlConnectionConfig } from 'knex';
@@ -80,17 +80,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const client = mqtt.connect(`mqtt://${process.env.MQTT_HOST}`, {
-    clientId: 'nher_api_client-' + Math.floor(Math.random() * 1000000),
-    username: process.env.MQTT_USER,
-    password: process.env.MQTT_PASSWORD
-  });
+// app.use((req: Request, res: Response, next: NextFunction) => {
+//   const client = mqtt.connect(`mqtt://${process.env.MQTT_HOST}`, {
+//     clientId: 'nher_api_client-' + Math.floor(Math.random() * 1000000),
+//     username: process.env.MQTT_USER,
+//     password: process.env.MQTT_PASSWORD
+//   });
 
-  req.mqttClient = client;
+//   req.mqttClient = client;
 
-  next();
-});
+//   next();
+// });
 
 let checkAuth = (req: Request, res: Response, next: NextFunction) => {
   let token: any = null;
